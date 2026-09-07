@@ -280,7 +280,8 @@ def find_articles():
     排除辅助文件：写作信息-*.md（备选标题/图位清单/来源说明，仅供审阅，不进公众号）
     """
     if not os.path.isdir(PUBLISH_DIR):
-        raise RuntimeError(f"发布目录不存在: {PUBLISH_DIR}")
+        os.makedirs(PUBLISH_DIR, exist_ok=True)
+        print(f"📁 发布目录不存在，已自动创建: {PUBLISH_DIR}")
     files = glob.glob(os.path.join(PUBLISH_DIR, "**", "*.md"), recursive=True)
     return sorted(f for f in files if not os.path.basename(f).startswith("写作信息-"))
 
