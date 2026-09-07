@@ -24,7 +24,7 @@ from datetime import datetime
 # ============================================================
 
 # ① 输出目录：改成你的 Obsidian 库路径，例如 "/Users/xxx/Documents/MyObsidian"
-OUTPUT_DIR = "/你的/Obsidian库/公众号采集流水线-分享包/00-Inbox 原始"
+OUTPUT_DIR = "/Users/zhanyuxiao/Desktop/Laoxiaobazi/01_爬取专用/00-Inbox 原始"
 
 # ② 采集日期：默认自动取当天，格式 "YYYY-MM-DD"
 #    如需补采历史日期，改成具体日期，例如 "2026-09-04"

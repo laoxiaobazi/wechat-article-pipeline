@@ -231,6 +231,14 @@ def parse_md(filepath):
                     meta[k.strip().lower()] = v.strip()
             body = parts[2]
 
+    # 剔除辅助区块（仅供用户审阅，不进公众号正文）：
+    # 正文在「备选标题 / 图位清单 / 来源说明」任一二级标题处截止
+    aux_cut = re.search(r"^#{1,4}\s*(备选标题|图位清单|来源说明)\s*$", body, re.M)
+    if aux_cut:
+        body = body[: aux_cut.start()]
+    # 去掉正文末尾残留的分隔线/空行
+    body = re.sub(r"\n---+\s*$", "", body).rstrip()
+
     title = meta.get("title") or os.path.basename(filepath).replace(".md", "")
     summary = meta.get("summary", "")
     author = meta.get("author", "一号设计")
@@ -267,10 +275,14 @@ def create_draft(access_token, articles):
 
 
 def find_articles():
-    """查找待发布的成稿 md（支持 15-Published 发布/{日期}/*.md 递归结构）"""
+    """查找待发布的成稿 md（支持 15-Published 发布/{日期}/*.md 递归结构）
+
+    排除辅助文件：写作信息-*.md（备选标题/图位清单/来源说明，仅供审阅，不进公众号）
+    """
     if not os.path.isdir(PUBLISH_DIR):
         raise RuntimeError(f"发布目录不存在: {PUBLISH_DIR}")
-    return sorted(glob.glob(os.path.join(PUBLISH_DIR, "**", "*.md"), recursive=True))
+    files = glob.glob(os.path.join(PUBLISH_DIR, "**", "*.md"), recursive=True)
+    return sorted(f for f in files if not os.path.basename(f).startswith("写作信息-"))
 
 
 # ============================================================

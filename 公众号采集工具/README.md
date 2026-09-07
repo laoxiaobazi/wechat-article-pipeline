@@ -1,3 +1,12 @@
+---
+title: 采集说明
+type: 项目
+role: 其他
+status: 进行中
+tags:
+  - 爬取
+---
+
 # 公众号文章采集工具
 
 纯 Python 脚本，无需浏览器、无需安装第三方库，开箱即用。
@@ -36,14 +45,14 @@ OUTPUT_DIR = "/Users/你的名字/Documents/MyObsidian/00_收集"
 打开终端（macOS：启动台 → 其他 → 终端），进入脚本所在目录，运行：
 
 ```bash
-cd ~/你的Obsidian库/公众号采集流水线-分享包/公众号采集工具
+cd ~/Desktop/Laoxiaobazi/scripts/公众号采集工具
 python3 collect_articles.py
 ```
 
 或
 
 ```
-python3 ~/你的Obsidian库/公众号采集流水线-分享包/公众号采集工具/collect_articles.py
+python3 ~/Desktop/Laoxiaobazi/scripts/公众号采集工具/collect_articles.py
 ```
 
 Windows 用户如果 `python3` 不行，试试 `python collect_articles.py`。

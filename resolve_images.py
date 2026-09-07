@@ -6,8 +6,10 @@
 规则:
 - md 内占位符格式: ![图N-建议内容]()（空链接）
 - 用户把图片文件命名为占位符的名字（如 "图1-封面-沙漠星球画面.jpg"），
-  放入文章同目录下的 images-{标题}/ 文件夹
-- 本脚本扫描该文件夹，按文件名（忽略扩展名）自动匹配占位符并替换为相对路径引用
+  放入文章同目录下的 images-{标题}/ 文件夹（中文名即可，无需懂英文）
+- 本脚本扫描该文件夹，按文件名（忽略扩展名）自动匹配占位符，
+  匹配后自动把图片重命名为英文短名 img1.jpg / img2.jpg ...（Obsidian 解析中文/空格路径不可靠），
+  并替换为相对路径引用
 - 未匹配的占位符输出缺图清单
 
 匹配规则:
@@ -33,6 +35,16 @@ def resolve_images(filepath):
     md_dir = os.path.dirname(filepath)
     title = os.path.basename(filepath).replace(".md", "")
     img_dir = os.path.join(md_dir, f"images-{title}")
+    # 兼容：目录不存在时，自动在 md 同目录下找唯一的 images-* 目录
+    # （成稿的图片目录统一用纯英文短名如 images-fermat-proof，避免 Obsidian 解析中文/空格路径失败）
+    if not os.path.isdir(img_dir):
+        candidates = [
+            os.path.join(md_dir, d)
+            for d in os.listdir(md_dir)
+            if d.startswith("images-") and os.path.isdir(os.path.join(md_dir, d))
+        ]
+        if len(candidates) == 1:
+            img_dir = candidates[0]
 
     # 提取所有占位符
     placeholders = re.findall(r"!\[([^\]]*)\]\(\)", body)
@@ -58,20 +70,31 @@ def resolve_images(filepath):
         else:
             missing.append(ph)
 
-    # 替换占位符
+    # 替换占位符：把匹配到的图片重命名为英文短名 img1.jpg / img2.jpg ...
+    # （Obsidian 解析含中文/空格/全角标点的图片路径不可靠，统一转英文名）
     new_body = body
-    for ph in matched:
+    img_dir_name = os.path.basename(img_dir)
+    for i, ph in enumerate(matched, start=1):
         ph_key = re.sub(r"\s+", "", ph)
-        filename = available.get(ph) or available.get(ph_key)
+        old_filename = available.get(ph) or available.get(ph_key)
+        old_path = os.path.join(img_dir, old_filename)
+        # 目标英文名（保留原扩展名）
+        ext = os.path.splitext(old_filename)[1].lower()
+        new_filename = f"img{i}{ext}"
+        new_path = os.path.join(img_dir, new_filename)
+        if old_path != new_path:
+            if os.path.exists(new_path):
+                os.remove(new_path)  # 覆盖旧残留
+            os.rename(old_path, new_path)
         new_body = new_body.replace(
-            f"![{ph}]()", f"![{ph}](images-{title}/{filename})"
+            f"![{ph}]()", f"![{ph}]({img_dir_name}/{new_filename})"
         )
 
     new_content = new_body if not content.startswith("---") else content.replace(body, new_body)
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(new_content)
 
-    print(f"✅ 已匹配 {len(matched)} 张: {', '.join(matched) if matched else '无'}")
+    print(f"✅ 已匹配 {len(matched)} 张并转为英文名: {', '.join(matched) if matched else '无'}")
     if missing:
         print(f"❌ 缺 {len(missing)} 张，请放入 {img_dir}/ 或选择 AI 生图:")
         for m in missing:
